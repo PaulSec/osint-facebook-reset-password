@@ -3,7 +3,7 @@
 
 """
 Python util to retrieve Facebook profile from an email address.
-Using this code, you can the full name + profile picture from any account using the email address. 
+Using this code, you can the full name + profile picture from any account using the email address.
 """
 
 import requests
@@ -73,12 +73,12 @@ class FacebookResetPasswordAPI(object):
 
         # retrieving link
         pattern = r'ldata=([a-zA-Z0-9-_]+)\\"'
-        ldata = re.findall(pattern, req.content)[0]
+        ldata = re.findall(pattern, req.content)
         if not ldata:
             self.display_message('[!] ldata not found')
             return []
 
-        req = s.get('https://www.facebook.com/recover/initiate?ldata=%s' % ldata)
+        req = s.get('https://www.facebook.com/recover/initiate?ldata=%s' % ldata[0])
         soup = BeautifulSoup(req.content)
         full_name = soup.find('div', attrs={'class': 'fsl fwb fcb'})
         profile_picture = soup.find('img', attrs={'class': 'img'})

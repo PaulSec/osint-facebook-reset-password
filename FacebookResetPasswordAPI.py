@@ -29,21 +29,21 @@ class FacebookResetPasswordAPI(object):
         """
         if not cls._instance:
             cls._instance = super(FacebookResetPasswordAPI, cls).__new__(
-                cls, *args, **kwargs)
+                cls)
             if (args and args[0] and args[0]['verbose']):
                 cls._verbose = True
         return cls._instance
 
     def display_message(self, s):
         if (self._verbose):
-            print '[verbose] %s' % s
+            print('[verbose] %s' % s)
 
     def get(self, email):
         s = requests.Session()
         req = s.get('https://www.facebook.com/login/identify?ctx=recover&lwv=110')
 
         # retrieve token
-        pattern = r'"token":"([a-zA-Z0-9_-]+)"'
+        pattern = rb'"token":"([a-zA-Z0-9_-]+)"'
         token = re.findall(pattern, req.content)[0]
         if not token:
             self.display_message('[!] token not found')
@@ -51,7 +51,7 @@ class FacebookResetPasswordAPI(object):
         self.display_message('Token retrieved: %s' % token)
 
         # retrieve jsdatr
-        pattern = r'"_js_datr","([a-zA-Z0-9_-]+)"'
+        pattern = rb'"_js_datr","([a-zA-Z0-9_-]+)"'
         jsdatr = re.findall(pattern, req.content)[0]
         if not jsdatr:
             self.display_message('[!] jsdatr not found')
@@ -65,15 +65,20 @@ class FacebookResetPasswordAPI(object):
                 '__user': 0,
                 '__a': 1}
         # setting cookie
-        cookies = {'_js_datr': jsdatr + ';'}
+        cookies = {'_js_datr': str(jsdatr) + ';'}
         # setting headers
         headers = {'referer': 'https://www.facebook.com/login/identify?ctx=recover&lwv=110'}
         # sending the request and retrieving the data
         req = s.post('https://www.facebook.com/ajax/login/help/identify.php?ctx=recover', cookies=cookies, data=data, headers=headers)
 
         # retrieving link
-        pattern = r'ldata=([a-zA-Z0-9-_]+)\\"'
-        ldata = re.findall(pattern, req.content)[0]
+        pattern = rb'ldata=([a-zA-Z0-9-_]+)\\"'
+        print(req.content)
+        result = re.findall(pattern, req.content)
+        if len(result) > 0:
+            ldata = result[0]
+        else:
+            ldata = None
         if not ldata:
             self.display_message('[!] ldata not found')
             return []
